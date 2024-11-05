@@ -4,7 +4,7 @@
 ## motivation
 
 - counting triangles is a fundamental problem in graph theory
-- some problems requre exact algorithms
+- some problems require exact algorithms
 - exact algorithms are needed to evaluate approximate algorithms
 - explore possible generalizations of triangles counting algorithms to other graphlets
 
@@ -22,8 +22,14 @@
 
 - use graphs from `https://networkrepository.com/`
     - choose graphs spanning different orders of magnitude in size
+    - nomralize the input format
 - implement algorithms from scratch (C++)
     - use pseudocode from class as a guide for known algorithms
+- measure algorithm efficiency
+    - measure running time
+    - measure memory usage
+    - compare running times across graphs of different sizes
+    - compare results with theoretical expectations
 - machine for experiments: personal laptop
 
 
