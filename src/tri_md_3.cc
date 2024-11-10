@@ -7,6 +7,10 @@ using namespace std;
 
 using ii = pair<int, int>;
 
+/* idea: for each edge,
+ * compare the two adjacency lists and look for intersections in O(delta)
+ */
+
 int main() {
 	ios::sync_with_stdio(false);
 	cin.tie(nullptr), cout.tie(nullptr);
@@ -23,14 +27,25 @@ int main() {
 		neighbors[a].insert(b);
 	}
 
-	// look at each neighbor neighbors and see if the triangle is closed
 	vector<int> t(N);
-	for (int u = 0; u < N; u++) for (int v : neighbors[u]) for (int w : neighbors[v]) {
-		assert(u < v && v < w);
-		if (neighbors[u].find(w) != neighbors[u].end()) {
-			t[u]++;
-			t[v]++;
-			t[w]++;
+	for (int u = 0; u < N; u++) for (auto itr = neighbors[u].begin(); itr != neighbors[u].end(); itr++) {
+		int v = *itr;
+		assert(u < v);
+		const auto &nu = neighbors[u], &nv = neighbors[v];
+		auto iu = itr, iv = nv.begin();
+		iu++;
+		while (iu != nu.end() && iv != nv.end()) {
+			int wu = *iu, wy = *iv;
+			if (wu < wy) {
+				iu++;
+			} else if (wu > wy) {
+				iv++;
+			} else {
+				t[u]++;
+				t[v]++;
+				t[wu]++;
+				iu++, iv++;
+			}
 		}
 	}
 

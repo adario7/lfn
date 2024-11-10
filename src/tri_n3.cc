@@ -7,6 +7,9 @@ using namespace std;
 
 using ii = pair<int, int>;
 
+/* idea: take all possible nodes triplets and check if all edges are in the graph.
+ */
+
 int main() {
 	ios::sync_with_stdio(false);
 	cin.tie(nullptr), cout.tie(nullptr);
