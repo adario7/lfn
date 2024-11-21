@@ -1,4 +1,10 @@
 
+#This class executes the input executable program five times for each graph in the "data" folder.
+#It generates a report that includes:
+#The mean of the outputs produced.
+#The average execution time for all graphs  
+
+
 import sys
 import numpy as np
 import time
@@ -11,7 +17,7 @@ if len(sys.argv)>1:
 else:
     exe_name = input("Enter the name of the .exe file: ")
 
-data_test_path = Path(__file__).resolve().parent.parent / "data" #"C:\Users\leona\OneDrive\Desktop\lfn\data"
+data_test_path = Path(__file__).resolve().parent / "data" #"C:\Users\leona\OneDrive\Desktop\lfn\data"
 
 def stopwatch(exe_path, test_graph_path):
     with open(test_graph_path, "r") as infile:
@@ -40,7 +46,7 @@ def test(exe_path, n_tests = 5):
     return report
 
 
-exe_path = str(Path(__file__).resolve().parent.parent) + "\\build\\" + exe_name
+exe_path = str(Path(__file__).resolve().parent) + "\\build\\" + exe_name
 #exe_path = "C:\\Users\\leona\\OneDrive\\Desktop\\lfn\\src\\tri_heuristic_1.exe"
 tests = test(exe_path)
 df = pd.DataFrame(tests, columns=[ "Graph", "|V|", "|E|" , "mean #triangles", "mean CPU time" ])
