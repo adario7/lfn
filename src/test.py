@@ -1,10 +1,15 @@
 
-
+import sys
 import numpy as np
 import time
 import subprocess
 import pandas as pd
 from pathlib import Path
+
+if len(sys.argv)>1:
+    exe_name = sys.argv[1]
+else:
+    exe_name = input("Enter the name of the .exe file: ")
 
 data_test_path = Path(__file__).resolve().parent.parent / "data" #"C:\Users\leona\OneDrive\Desktop\lfn\data"
 
@@ -16,7 +21,7 @@ def stopwatch(exe_path, test_graph_path):
     cpu_time = end_time - start_time
     return[graphlets.stdout, cpu_time]
 
-def test(exe_path, n_tests):
+def test(exe_path, n_tests = 5):
     report = []
     for graph in data_test_path.glob('*'):
         results = []
@@ -34,8 +39,10 @@ def test(exe_path, n_tests):
             report.append([graph_name,V,E]+list(results.mean(axis=0)))
     return report
 
-exe_path = "C:\\Users\\leona\\OneDrive\\Desktop\\lfn\\src\\tri_heuristic_1.exe"
-tests = test(exe_path,5)
+
+exe_path = str(Path(__file__).resolve().parent.parent) + "\\build\\" + exe_name
+#exe_path = "C:\\Users\\leona\\OneDrive\\Desktop\\lfn\\src\\tri_heuristic_1.exe"
+tests = test(exe_path)
 df = pd.DataFrame(tests, columns=[ "Graph", "|V|", "|E|" , "mean #triangles", "mean CPU time" ])
 print(df)
 
