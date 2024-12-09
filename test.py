@@ -38,7 +38,7 @@ def test(exe_path, n_tests = 5):
             result = stopwatch(exe_path, str(graph))
             if result[0] is None or result[0]=='':
                 continue
-            int_result = [int(result[0].strip()), result[1]]
+            int_result = [int(result[0].strip().split("\n")[-1]), result[1]]
             results.append(int_result)
         results = np.array(results)
         if len(results) != 0:
