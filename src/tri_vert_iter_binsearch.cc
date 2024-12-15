@@ -30,7 +30,7 @@ int main() {
 	vector<int> t(N);
 	for (int u = 0; u < N; u++) for (int v : neighbors[u]) for (int w : neighbors[v]) {
 		assert(u < v && v < w);
-		if (neighbors[u].find(w) != neighbors[u].end()) {
+		if (neighbors[u].count(w)) {
 			t[u]++;
 			t[v]++;
 			t[w]++;
