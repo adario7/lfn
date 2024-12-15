@@ -5,7 +5,7 @@ def read_and_convert_edges():
     max_vertex_id = 0
     
     for line in sys.stdin:
-        u, v = map(int, line.strip().split())
+        u, v = map(int, line.strip().split()[:2])
         # Convert to 0-based indexing
         u -= 1
         v -= 1
