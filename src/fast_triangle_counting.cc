@@ -1,13 +1,12 @@
 #include <iostream>
 #include <vector>
 #include <queue>
-#include <set>
 #include <unordered_set>
 #include <unordered_map>
 
 using namespace std;
 
-vector<int> BFS_v_levels(const vector<set<int>>& graph, int StartNode = 0)
+vector<int> BFS_v_levels(const vector<unordered_set<int>>& graph, int StartNode = 0)
 {
     vector<int> levels(graph.size(), -1);
     levels[StartNode] = 0;
@@ -32,7 +31,7 @@ vector<int> BFS_v_levels(const vector<set<int>>& graph, int StartNode = 0)
     return levels; 
 }
 
-int TC_forward_hashed(const vector<set<int>>& graph)
+int TC_forward_hashed(const vector<unordered_set<int>>& graph)
 {
     int T = 0;
     vector<unordered_set<int>> A(graph.size());
@@ -69,8 +68,8 @@ int main()
 
     int n, m;
     cin >> n >> m;
-    //int n=25; 
-    vector<set<int>> graph(n), G0(n), G1(n);
+    
+    vector<unordered_set<int>> graph(n), G0(n), G1(n);
 
     for(int i = 0; i < m; i++)
     {
@@ -83,35 +82,6 @@ int main()
         graph[u].insert(v);
         graph[v].insert(u);
     }
-   /*for (int i = 0; i + 2 < n; i += 3) {
-        // Collega i nodi i, i+1, i+2
-        graph[i].insert(i + 1);
-        graph[i].insert(i + 2);
-
-        graph[i + 1].insert(i);
-        graph[i + 1].insert(i + 2);
-
-        graph[i + 2].insert(i);
-        graph[i + 2].insert(i + 1);
-    }
-
-    // Gestione dei nodi rimanenti
-    int remaining = n % 3;
-    if (remaining == 1) {
-        // Collega l'ultimo nodo al penultimo
-        graph[n - 1].insert(n - 2);
-        graph[n - 2].insert(n - 1);
-    } else if (remaining == 2) {
-        // Collega gli ultimi due nodi al terzultimo
-        graph[n - 3].insert(n - 2);
-        graph[n - 3].insert(n - 1);
-
-        graph[n - 2].insert(n - 3);
-        graph[n - 2].insert(n - 1);
-
-        graph[n - 1].insert(n - 3);
-        graph[n - 1].insert(n - 2);
-    }*/
 
     vector<int> levels = BFS_v_levels(graph, 0);
     
