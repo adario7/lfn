@@ -20,6 +20,7 @@ else:
 data_test_path = Path(__file__).resolve().parent / "data" #"C:\Users\leona\OneDrive\Desktop\lfn\data"
 
 def stopwatch(exe_path, test_graph_path):
+    print(exe_path, test_graph_path)
     with open(test_graph_path, "r") as infile:
         start_time = time.time()
         graphlets = subprocess.run(exe_path, stdin=infile, capture_output=True,text=True)
@@ -46,7 +47,7 @@ def test(exe_path, n_tests = 5):
     return report
 
 
-exe_path = str(Path(__file__).resolve().parent) + "\\build\\" + exe_name
+exe_path = str(Path(__file__).resolve().parent / "build" / exe_name)
 #exe_path = "C:\\Users\\leona\\OneDrive\\Desktop\\lfn\\src\\tri_heuristic_1.exe"
 tests = test(exe_path)
 df = pd.DataFrame(tests, columns=[ "Graph", "|V|", "|E|" , "mean #triangles", "mean CPU time" ])
