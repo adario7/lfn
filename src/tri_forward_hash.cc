@@ -11,7 +11,7 @@ using ii = pair<int, int>;
  * compare the two adjacency lists and look for intersections using binary search
  */
 
-int main() {
+int main(int argc, char** argv) {
 	ios::sync_with_stdio(false);
 	cin.tie(nullptr), cout.tie(nullptr);
 
@@ -27,12 +27,14 @@ int main() {
 		nlist[u].push_back(v);
 	}
 
+	int op = 0;
 	vector<int> t(N);
 	vector<unordered_set<int>> nset(N);
 	for (int u = 0; u < N; u++) for (int v : nlist[u]) {
 		const auto& small = nset[u].size() < nset[v].size() ? nset[u] : nset[v];
 		const auto& large = nset[u].size() < nset[v].size() ? nset[v] : nset[u];
 		for (int w : small) {
+			op++;
 			if (large.count(w)) {
 				t[u]++;
 				t[v]++;
@@ -49,4 +51,6 @@ int main() {
 		sum += t[i];
 	}
 	cout << sum/3 << endl;
+
+	if (argc > 1) cerr << "op = " << op << endl;
 }

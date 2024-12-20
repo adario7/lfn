@@ -2,7 +2,6 @@
 #include <vector>
 #include <queue>
 #include <unordered_set>
-#include <unordered_map>
 
 using namespace std;
 
@@ -31,11 +30,11 @@ vector<int> BFS_v_levels(const vector<unordered_set<int>>& graph, int StartNode 
     return levels; 
 }
 
-int TC_forward_hashed(const vector<unordered_set<int>>& graph)
+int TC_forward_hashed(int n, const vector<unordered_set<int>>& graph)
 {
     int T = 0;
     vector<unordered_set<int>> A(graph.size());
-    unordered_map<int, bool> hash;
+	vector<bool> hash(n);
 
     for(int u = 0; u < graph.size(); u++)
     {
@@ -79,8 +78,10 @@ int main()
         if(u == v)
             continue;
 
-        graph[u].insert(v);
-        graph[v].insert(u);
+        //graph[u].insert(v);
+        //graph[v].insert(u);
+		int a = min(u, v), b = max(u, v);
+		graph[a].insert(b);
     }
 
     vector<int> levels = BFS_v_levels(graph, 0);
@@ -101,9 +102,9 @@ int main()
         }
     }
 
-    int T = TC_forward_hashed(G0);
+    int T = TC_forward_hashed(n, G0);
 
-    unordered_map<int, bool> hash;
+    vector<bool> hash(n);
     for(int u=0; u < G1.size(); u++)
     {
         for(int v:G1[u])
