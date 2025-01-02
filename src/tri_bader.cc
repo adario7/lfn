@@ -3,6 +3,10 @@
 #include <queue>
 #include <unordered_set>
 
+/*
+ * see: "Fast Triangle Counting" (Bader, 2023)
+*/
+
 using namespace std;
 
 vector<int> BFS_v_levels(const vector<unordered_set<int>>& graph, int StartNode = 0)
