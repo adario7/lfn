@@ -11,16 +11,22 @@ import time
 import subprocess
 import pandas as pd
 from pathlib import Path
+import pickle
 
 if len(sys.argv)>1:
-    exe_name = sys.argv[1]
+    exe_names = sys.argv[1:]
 else:
-    exe_name = input("Enter the name of the .exe file: ")
+    #You can specify the names of the algorithms to be ran in torun.txt, one per line including the .exe
+    f = open("build/torun.txt")
+
+    exe_names = [str(name.split()[0]) for name in f]
+
+    f.close()
 
 data_test_path = Path(__file__).resolve().parent / "data" #"C:\Users\leona\OneDrive\Desktop\lfn\data"
 
 def stopwatch(exe_path, test_graph_path):
-    print(exe_path, test_graph_path)
+    
     with open(test_graph_path, "r") as infile:
         start_time = time.time()
         graphlets = subprocess.run(exe_path, stdin=infile, capture_output=True,text=True)
@@ -35,6 +41,8 @@ def test(exe_path, n_tests = 5):
         graph_name = graph.name
         with open(str(graph), "r") as infile:
             V, E = map(int, infile.readline().strip().split()[:2])
+        
+        print(str(graph))
         for i in range(n_tests):
             result = stopwatch(exe_path, str(graph))
             if result[0] is None or result[0]=='':
@@ -46,10 +54,37 @@ def test(exe_path, n_tests = 5):
             report.append([graph_name,V,E]+list(results.mean(axis=0)))
     return report
 
+#The results are saved in a dictionary that is stored safely via pickle
+#To load the dictionary in another script use:
+#with open("saved.pkl", "rb") as pkl:
+    #reports = pickle.load(pkl)
 
-exe_path = str(Path(__file__).resolve().parent / "build" / exe_name)
+def multiple_tests(exe_names, n_tests = 5):
+    reports = {}
+    with open("saved.pkl", "wb") as pkl:
+        pickle.dump(reports, pkl)
+    
+    for exe_name in exe_names:
+        
+        print("Now testing: " + exe_name + "\n")
+
+        exe_path = str(Path(__file__).resolve().parent / "build" / exe_name)
+        print(exe_path)
+        reports[exe_name] = test(exe_path, n_tests)
+
+        with open("saved.pkl", "wb") as pkl:
+            pickle.dump(reports, pkl)
+    
+    return reports
+
+#exe_name = "tri_edge_iter_binsearch.exe"
+
+#exe_path = str(Path(__file__).resolve().parent / "build" / exe_name)
 #exe_path = "C:\\Users\\leona\\OneDrive\\Desktop\\lfn\\src\\tri_heuristic_1.exe"
-tests = test(exe_path)
-df = pd.DataFrame(tests, columns=[ "Graph", "|V|", "|E|" , "mean #triangles", "mean CPU time" ])
-print(df)
+#tests = test(exe_path)
+
+#exe_path = "C:\\Users\\leona\\OneDrive\\Desktop\\lfn\\src\\tri_heuristic_1.exe"
+tests = multiple_tests(exe_names)
+#df = pd.DataFrame(tests, columns=[ "Graph", "|V|", "|E|" , "mean #triangles", "mean CPU time" ])
+#print(df)
 
