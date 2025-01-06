@@ -46,7 +46,7 @@ int main() {
 
 	vector<int> t(N);
 	for (int u = 0; u < N; u++) for (int v : neighbours[u]) for (int w : neighbours[v]) {
-		assert(order_pair(u, v) == ii(u, w));
+		assert(sort_pair(u, w) == ii(u, w));
 		if (neighbours[u].count(w)) {
 			t[u]++;
 			t[v]++;
