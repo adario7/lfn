@@ -1,6 +1,8 @@
 #include <algorithm>
 #include <cassert>
+#include <cstdlib>
 #include <iostream>
+#include <map>
 #include <unordered_set>
 #include <vector>
 #include <chrono>
@@ -19,29 +21,42 @@ vector<ll> count() {
 	vector<ll> G(9);
 	G[0] = M;
 
-	if (C4) for (int u = 0; u < N; u++) {
+	for (int u = 0; u < N; u++) {
 		int du = degree[u];
+		// G1: u is the central vertex, look for pairs
+		if (C1) if (du >= 2) {
+			G[1] += du * (du - 1) / 2;
+		}
 		// G4: u is the central vertex, look for all possible triplets: Bin(du, 3)
-		if (du >= 3) {
+		if (C4) if (du >= 3) {
 			G[4] += du * (du - 1) * (du - 2) / 6;
 		}
 	}
+	vector<map<int, int>> div_paths;
+	if (C5) div_paths.resize(N);
 	for (int u = 0; u < N; u++) for (int v : neighbours[u]) {
 		int idu = indegree[u], odv = neighbours[v].size();
 
-		// G1: (u, v) is the first edge, look for a second one
-		if (C1)
-			G[1] += odv;
-
 		// G3: (u, v) is the central edge, count possible extensions before and after this one
 		if (C3)
-			G[3] += idu * odv;
+			G[3] += (degree[u] - 1) * (degree[v] - 1);
 
 		// G5: look if any of the G3s is closed
-		if (C5) for (int w : neighbours[v]) for (int z : neighbours[w]) {
-			if (u == z) continue;
-			if (neighbours[u].count(z)) {
-				G[5]++;
+		if (C5) {
+			for (int z : neighbours[u]) if (z > v) { 
+				div_paths[v][z]++;
+				for (int w : neighbours[v]) {
+					// type 1 square: u < v < w, u < z < w (both pairs of opposite edges have the same direction)
+					if (neighbours[w].count(z)) {
+						//cerr << "G5_1: u=" << u << " v=" << v << " w=" << w << " z=" << z << endl;
+						G[5]++;
+					}
+					// type 2 square: u < v < w, u < z < w (one pair same direction, other opposite)
+					if (neighbours[z].count(w)) {
+						//cerr << "G5_2: u=" << u << " v=" << v << " w=" << w << " z=" << z << endl;
+						G[5]++;
+					}
+				}
 			}
 		}
 
@@ -76,6 +91,16 @@ vector<ll> count() {
 					if (neighbours[w].count(z))
 						G[8]++;
 				}
+			}
+		}
+	}
+
+	if (C5) {
+		// type 3 square: both pairs have opposite directions
+		for (int v = 0; v < N; v++) {
+			for (auto [z, c] : div_paths[v]) {
+				//if (c >= 2) cerr << "G5_3: v=" << v << " z=" << z << " c=" << c << endl;
+				G[5] += c * (c - 1) / 2;
 			}
 		}
 	}
