@@ -4,6 +4,7 @@
 #include <iostream>
 #include <map>
 #include <unordered_set>
+#include <utility>
 #include <vector>
 #include <chrono>
 
@@ -15,6 +16,11 @@ using Clock = chrono::high_resolution_clock;
 int N, M;
 vector<unordered_set<int>> neighbours;
 vector<int> degree, indegree;
+
+int get(const map<int, int>& m, int x) {
+	auto it = m.find(x);
+	return it == m.end() ? 0 : it->second;
+}
 
 template<bool C1, bool C2, bool C3, bool C4, bool C5, bool C6, bool C7, bool C8>
 vector<ll> count() {
@@ -32,8 +38,9 @@ vector<ll> count() {
 			G[4] += du * (du - 1) * (du - 2) / 6;
 		}
 	}
-	vector<map<int, int>> div_paths;
-	if (C5) div_paths.resize(N);
+
+	vector<map<int, int>> div_paths, dir_paths;
+	if (C5) div_paths.resize(N), dir_paths.resize(N);
 	for (int u = 0; u < N; u++) for (int v : neighbours[u]) {
 		int idu = indegree[u], odv = neighbours[v].size();
 
@@ -41,22 +48,14 @@ vector<ll> count() {
 		if (C3)
 			G[3] += (degree[u] - 1) * (degree[v] - 1);
 
-		// G5: look if any of the G3s is closed
 		if (C5) {
-			for (int z : neighbours[u]) if (z > v) { 
+			for (int w : neighbours[v]) {
+				// path u -> v -> w, u < v < w
+				dir_paths[u][w]++;
+			}
+			for (int z : neighbours[u]) if (v < z) { 
+				// path v <- u -> z, v < z, u < v, u < z
 				div_paths[v][z]++;
-				for (int w : neighbours[v]) {
-					// type 1 square: u < v < w, u < z < w (both pairs of opposite edges have the same direction)
-					if (neighbours[w].count(z)) {
-						//cerr << "G5_1: u=" << u << " v=" << v << " w=" << w << " z=" << z << endl;
-						G[5]++;
-					}
-					// type 2 square: u < v < w, u < z < w (one pair same direction, other opposite)
-					if (neighbours[z].count(w)) {
-						//cerr << "G5_2: u=" << u << " v=" << v << " w=" << w << " z=" << z << endl;
-						G[5]++;
-					}
-				}
 			}
 		}
 
@@ -96,10 +95,21 @@ vector<ll> count() {
 	}
 
 	if (C5) {
-		// type 3 square: both pairs have opposite directions
-		for (int v = 0; v < N; v++) {
-			for (auto [z, c] : div_paths[v]) {
-				//if (c >= 2) cerr << "G5_3: v=" << v << " z=" << z << " c=" << c << endl;
+		for (int u = 0; u < N; u++) {
+			// type 1 square: one pair has same direction, other opposite
+			for (auto [z, c] : div_paths[u]) {
+				int c_dir = get(dir_paths[u], z);
+				//if (c_dir) cerr << "G5_1: u=" << u << " z=" << z << " c=" << (c*c_dir) << endl;
+				G[5] += c * c_dir;
+			}
+			// type 2 square: both pairs have same direction
+			for (auto [z, c] : dir_paths[u]) {
+				//if (c >= 2) cerr << "G5_2: u=" << u << " z=" << z << " c=" << (c*(c-1)/2) << endl;
+				G[5] += c * (c - 1) / 2;
+			}
+			// type 3 square: both pairs have opposite directions
+			for (auto [z, c] : div_paths[u]) {
+				//if (c >= 2) cerr << "G5_3: u=" << u << " z=" << z << " c=" << (c*(c-1)/2) << endl;
 				G[5] += c * (c - 1) / 2;
 			}
 		}
