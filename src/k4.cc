@@ -14,12 +14,23 @@ using ll = long long;
 using Clock = chrono::high_resolution_clock;
 
 int N, M;
-vector<unordered_set<int>> neighbours;
+vector<unordered_set<int>> neighbours, inv_neighbours;
 vector<int> degree, indegree;
 
 int get(const map<int, int>& m, int x) {
 	auto it = m.find(x);
 	return it == m.end() ? 0 : it->second;
+}
+
+int set_intersection(const unordered_set<int>& a, const unordered_set<int>& b, int u, int v, int w) {
+	const auto& small = a.size() < b.size() ? a : b;
+	const auto& large = a.size() < b.size() ? b : a;
+	int count = 0;
+	for (int x : small) {
+		if (x == u || x == v || x == w) continue;
+		if (large.count(x)) count++;
+	}
+	return count;
 }
 
 template<bool C1, bool C2, bool C3, bool C4, bool C5, bool C6, bool C7, bool C8>
@@ -39,25 +50,12 @@ vector<ll> count() {
 		}
 	}
 
-	vector<map<int, int>> div_paths, dir_paths;
-	if (C5) div_paths.resize(N), dir_paths.resize(N);
 	for (int u = 0; u < N; u++) for (int v : neighbours[u]) {
 		int idu = indegree[u], odv = neighbours[v].size();
 
 		// G3: (u, v) is the central edge, count possible extensions before and after this one
 		if (C3)
 			G[3] += (degree[u] - 1) * (degree[v] - 1);
-
-		if (C5) {
-			for (int w : neighbours[v]) {
-				// path u -> v -> w, u < v < w
-				dir_paths[u][w]++;
-			}
-			for (int z : neighbours[u]) if (v < z) { 
-				// path v <- u -> z, v < z, u < v, u < z
-				div_paths[v][z]++;
-			}
-		}
 
 		// G2: look for triangles on this edge
 		int n_tris = 0;
@@ -96,21 +94,21 @@ vector<ll> count() {
 
 	if (C5) {
 		for (int u = 0; u < N; u++) {
-			// type 1 square: one pair has same direction, other opposite
-			for (auto [z, c] : div_paths[u]) {
-				int c_dir = get(dir_paths[u], z);
-				//if (c_dir) cerr << "G5_1: u=" << u << " z=" << z << " c=" << (c*c_dir) << endl;
-				G[5] += c * c_dir;
-			}
-			// type 2 square: both pairs have same direction
-			for (auto [z, c] : dir_paths[u]) {
-				//if (c >= 2) cerr << "G5_2: u=" << u << " z=" << z << " c=" << (c*(c-1)/2) << endl;
-				G[5] += c * (c - 1) / 2;
-			}
-			// type 3 square: both pairs have opposite directions
-			for (auto [z, c] : div_paths[u]) {
-				//if (c >= 2) cerr << "G5_3: u=" << u << " z=" << z << " c=" << (c*(c-1)/2) << endl;
-				G[5] += c * (c - 1) / 2;
+			for (int v : neighbours[u]) {
+				for (int w : neighbours[u]) if (v < w) {
+					// type 1 square: one pair has same direction, other opposite (not used)
+					int c1 = set_intersection(inv_neighbours[v], neighbours[w], u, v, w);
+					//if (c1) cerr << "G5_1: u=" << u << " v=" << v << " w=" << w << " c=" << c1 << endl;
+					G[5] += c1;
+					// type 2 square: both pairs have same direction
+					int c2 = set_intersection(neighbours[v], neighbours[w], u, v, w);
+					G[5] += c2;
+					//if (c2) cerr << "G5_2: u=" << u << " v=" << v << " w=" << w << " c=" << c2 << endl;
+					// type 3 square: both pairs have opposite directions
+					int c3 = set_intersection(inv_neighbours[v], inv_neighbours[w], u, v, w);
+					G[5] += c3;
+					//if (c3) cerr << "G5_3: u=" << u << " v=" << v << " w=" << w << " c=" << c3 << endl;
+				}
 			}
 		}
 	}
@@ -146,15 +144,19 @@ int main(int argc, char** argv) {
 
 	cin >> N >> M;
 	neighbours.resize(N);
+	inv_neighbours.resize(N);
 	degree.resize(N);
 	indegree.resize(N);
 	for (int i = 0; i < M; i++) {
 		int x, y;
 		cin >> x >> y;
+		assert(0 <= x && x < N);
+		assert(0 <= y && y < N);
 		if (x == y) continue;
 		degree[x]++, degree[y]++;
 		int a = min(x, y), b = max(x, y);
 		neighbours[a].insert(b);
+		inv_neighbours[b].insert(a);
 		indegree[b]++;
 	}
 	
