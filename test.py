@@ -33,8 +33,11 @@ def test(exe_path, n_tests = 5):
     for graph in data_test_path.glob('*'):
         results = []
         graph_name = graph.name
-        with open(str(graph), "r") as infile:
-            V, E = map(int, infile.readline().strip().split()[:2])
+        try:
+            with open(str(graph), "r") as infile:
+                V, E = map(int, infile.readline().strip().split()[:2])
+        except Exception:
+            continue
         for i in range(n_tests):
             result = stopwatch(exe_path, str(graph))
             if result[0] is None or result[0]=='':
