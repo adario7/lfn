@@ -15,23 +15,28 @@ using Clock = chrono::high_resolution_clock;
 
 int N, M;
 vector<unordered_set<int>> neighbours, inv_neighbours;
-vector<int> degree, indegree;
+vector<int> degree;
 
 int get(const map<int, int>& m, int x) {
 	auto it = m.find(x);
 	return it == m.end() ? 0 : it->second;
 }
 
-int set_intersection(const unordered_set<int>& a, const unordered_set<int>& b, int u, int v, int w) {
-	const auto& small = a.size() < b.size() ? a : b;
-	const auto& large = a.size() < b.size() ? b : a;
-	int count = 0;
-	for (int x : small) {
-		if (x == u || x == v || x == w) continue;
-		if (large.count(x)) count++;
-	}
-	return count;
-}
+#define set_intersection(_a, _b, condition, code) do { \
+	const auto& _small = _a.size() < _b.size() ? _a : _b; \
+	const auto& _large = _a.size() < _b.size() ? _b : _a; \
+	for (int z : _small) { \
+		if (!(condition)) continue; \
+		if (z == v || z == w) continue; \
+		if (_large.count(z)) { \
+			if (C5) G[5]++; \
+			/* G7: look for sqaures with a diagonal */ \
+			if (C7) if (neighbours[u].count(z)) G[7]++; \
+			if (C7) if (neighbours[v].count(w)) G[7]++; \
+			code; \
+		} \
+	} \
+} while (0)
 
 template<bool C1, bool C2, bool C3, bool C4, bool C5, bool C6, bool C7, bool C8>
 vector<ll> count() {
@@ -46,21 +51,20 @@ vector<ll> count() {
 		}
 		// G4: u is the central vertex, look for all possible triplets: Bin(du, 3)
 		if (C4) if (du >= 3) {
-			G[4] += du * (du - 1) * (du - 2) / 6;
+			G[4] += ll(du) * (du - 1) * (du - 2) / 6;
 		}
 	}
 
 	for (int u = 0; u < N; u++) for (int v : neighbours[u]) {
-		int idu = indegree[u], odv = neighbours[v].size();
-
 		// G3: (u, v) is the central edge, count possible extensions before and after this one
+		// this will also count triangles as G3s, corrected when converting the count to induced
 		if (C3)
 			G[3] += (degree[u] - 1) * (degree[v] - 1);
 
 		// G2: look for triangles on this edge
 		int n_tris = 0;
 		vector<int> tris;
-		if (C2 || C6 || C7 || C8) {
+		if (C2 || C6 || C8) {
 			for (int w : neighbours[v]) if (neighbours[u].count(w)) {
 				// here u, v, w is a triangle
 				if (C2)
@@ -72,11 +76,6 @@ vector<ll> count() {
 				if (C6)
 					G[6] += (degree[u] - 2) + (degree[v] - 2) + (degree[w] - 2);
 			}
-		}
-
-		// G7: two triangles sharing an edge
-		if (C7) if (n_tris >= 2) {
-			G[7] += n_tris * (n_tris - 1) / 2;
 		}
 
 		// G8: look for G7s with connected endpoints
@@ -92,28 +91,46 @@ vector<ll> count() {
 		}
 	}
 
-	if (C5) {
+	if (C5 || C7) {
+		// G5: look for the intersection of two orented paths of length 2
 		for (int u = 0; u < N; u++) {
 			for (int v : neighbours[u]) {
 				for (int w : neighbours[u]) if (v < w) {
-					// type 1 square: one pair has same direction, other opposite (not used)
-					int c1 = set_intersection(inv_neighbours[v], neighbours[w], u, v, w);
-					//if (c1) cerr << "G5_1: u=" << u << " v=" << v << " w=" << w << " c=" << c1 << endl;
-					G[5] += c1;
+					// type 1 square: one pair has same direction, other opposite
+					set_intersection(neighbours[v], inv_neighbours[w], 1, {
+						//cerr << "G5_1: u=" << u << " v=" << v << " w=" << w << " z=" << z << endl;
+					});
 					// type 2 square: both pairs have same direction
-					int c2 = set_intersection(neighbours[v], neighbours[w], u, v, w);
-					G[5] += c2;
-					//if (c2) cerr << "G5_2: u=" << u << " v=" << v << " w=" << w << " c=" << c2 << endl;
+					set_intersection(neighbours[v], neighbours[w], 1, {
+						//cerr << "G5_2: u=" << u << " v=" << v << " w=" << w << " z=" << z << endl;
+					});
 					// type 3 square: both pairs have opposite directions
-					int c3 = set_intersection(inv_neighbours[v], inv_neighbours[w], u, v, w);
-					G[5] += c3;
-					//if (c3) cerr << "G5_3: u=" << u << " v=" << v << " w=" << w << " c=" << c3 << endl;
+					set_intersection(inv_neighbours[v], inv_neighbours[w], u < z, {
+						//cerr << "G5_3: u=" << u << " v=" << v << " w=" << w << " z=" << z << endl;
+					});
 				}
 			}
 		}
 	}
 
 	return G;
+}
+
+vector<ll> count_induced(const vector<ll> &NI) {
+	vector<ll> I(NI.size());
+	// k2
+	I[0] = NI[0];
+	// k3
+	I[2] = NI[2];
+	I[1] = NI[1] - 3 * NI[2];
+	// k4
+	I[8] = NI[8];
+	I[7] = NI[7] - 6 * I[8];
+	I[6] = NI[6] - 4 * I[7] - 12 * I[8];
+	I[5] = NI[5] - I[7] - 3 * I[8];
+	I[4] = NI[4] - I[6] - 2 * I[7] - 4 * I[8];
+	I[3] = NI[3] - 2 * I[6] - 4 * I[5] - 6 * I[7] - 12 * I[8] - 3 * I[2];
+	return I;
 }
 
 template<bool C1, bool C2, bool C3, bool C4, bool C5, bool C6, bool C7, bool C8>
@@ -146,22 +163,22 @@ int main(int argc, char** argv) {
 	neighbours.resize(N);
 	inv_neighbours.resize(N);
 	degree.resize(N);
-	indegree.resize(N);
 	for (int i = 0; i < M; i++) {
 		int x, y;
 		cin >> x >> y;
 		assert(0 <= x && x < N);
 		assert(0 <= y && y < N);
-		if (x == y) continue;
-		degree[x]++, degree[y]++;
+		if (x == y) continue; // skip self-loops
 		int a = min(x, y), b = max(x, y);
-		neighbours[a].insert(b);
+		bool inserted = neighbours[a].insert(b).second;
+		if (!inserted) continue; // skip multi-edges
 		inv_neighbours[b].insert(a);
-		indegree[b]++;
+		degree[x]++, degree[y]++;
 	}
 	
 	if (argc == 1) {
 		vector<long long> G = count<1, 1, 1, 1, 1, 1, 1, 1>();
+		G = count_induced(G);
 		for (int g = 0; g <= 8; g++) {
 			cout << G[g] << endl;
 		}

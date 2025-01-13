@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 lines = sys.stdin.read().strip().splitlines()
 lines = [line for line in lines if line]
 num_vertices, num_edges = map(int, lines[0].split())
-edges = [tuple(map(int, line.split())) for line in lines[1:]]
+edges = [tuple(map(int, line.split())) for line in lines[1:] if line]
 
 # Determine graph type
 is_digraph = len(sys.argv) > 1
