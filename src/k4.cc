@@ -17,23 +17,24 @@ int N, M;
 vector<unordered_set<int>> neighbours, inv_neighbours;
 vector<int> degree;
 
+int bin2(int n) { return n * (n - 1) / 2; }
+
 int get(const map<int, int>& m, int x) {
 	auto it = m.find(x);
 	return it == m.end() ? 0 : it->second;
 }
 
-#define set_intersection(_a, _b, condition, code) do { \
+#define set_intersection(_a, _b, condition, d11, d12, d21, d22) do { \
 	const auto& _small = _a.size() < _b.size() ? _a : _b; \
 	const auto& _large = _a.size() < _b.size() ? _b : _a; \
 	for (int z : _small) { \
 		if (!(condition)) continue; \
-		if (z == v || z == w) continue; \
+		if (z == u || z == v || z == w) continue; \
 		if (_large.count(z)) { \
 			if (C5) G[5]++; \
 			/* G7: look for sqaures with a diagonal */ \
-			if (C7) if (neighbours[u].count(z)) G[7]++; \
-			if (C7) if (neighbours[v].count(w)) G[7]++; \
-			code; \
+			if (C7) if (neighbours[d11].count(d12)) G[7]++; \
+			if (C7) if (neighbours[d21].count(d22)) G[7]++; \
 		} \
 	} \
 } while (0)
@@ -47,7 +48,7 @@ vector<ll> count() {
 		int du = degree[u];
 		// G1: u is the central vertex, look for pairs
 		if (C1) if (du >= 2) {
-			G[1] += du * (du - 1) / 2;
+			G[1] += bin2(du);
 		}
 		// G4: u is the central vertex, look for all possible triplets: Bin(du, 3)
 		if (C4) if (du >= 3) {
@@ -94,21 +95,56 @@ vector<ll> count() {
 	if (C5 || C7) {
 		// G5: look for the intersection of two orented paths of length 2
 		for (int u = 0; u < N; u++) {
+			int n_div = 2*bin2(neighbours[u].size());
+			int n_dir = 0, n_inv = 0;
 			for (int v : neighbours[u]) {
-				for (int w : neighbours[u]) if (v < w) {
-					// type 1 square: one pair has same direction, other opposite
-					set_intersection(neighbours[v], inv_neighbours[w], 1, {
-						//cerr << "G5_1: u=" << u << " v=" << v << " w=" << w << " z=" << z << endl;
-					});
-					// type 2 square: both pairs have same direction
-					set_intersection(neighbours[v], neighbours[w], 1, {
-						//cerr << "G5_2: u=" << u << " v=" << v << " w=" << w << " z=" << z << endl;
-					});
-					// type 3 square: both pairs have opposite directions
-					set_intersection(inv_neighbours[v], inv_neighbours[w], u < z, {
-						//cerr << "G5_3: u=" << u << " v=" << v << " w=" << w << " z=" << z << endl;
-					});
-				}
+				n_dir += neighbours[v].size();
+				n_inv += inv_neighbours[v].size();
+			}
+			int n_min  = min(n_div, min(n_dir, n_inv));
+
+			// type 1 square: one pair has same direction, other opposite
+			if (n_div == n_min) {
+				for (int v : neighbours[u]) {
+					for (int w : neighbours[u]) if (v < w) {
+						set_intersection(neighbours[v], inv_neighbours[w], 1, u, z, v, w);
+					}}
+			} else if (n_dir == n_min) {
+				for (int v : neighbours[u]) {
+					for (int w : neighbours[v]) {
+						set_intersection(neighbours[u], neighbours[w], 1, u, w, v, z);
+					}}
+			} else { // n_inv == n_min
+				for (int v : neighbours[u]) {
+					for (int w : inv_neighbours[v]) if (u < w) {
+						set_intersection(neighbours[u], inv_neighbours[w], 1, u, w, z, v);
+					}}
+			}
+
+			// type 2 square: both pairs have same direction
+			if (n_div < n_dir) {
+				for (int v : neighbours[u]) {
+					for (int w : neighbours[u]) if (v < w) {
+						set_intersection(neighbours[v], neighbours[w], 1, u, z, v, w);
+				}}
+			} else {
+				for (int v : neighbours[u]) {
+					for (int w : neighbours[v]) {
+						set_intersection(neighbours[u], inv_neighbours[w], v < z, u, w, v, z);
+					}}
+			}
+
+			// type 3 square: both pairs have opposite directions
+			if (n_div < n_inv) {
+				for (int v : neighbours[u]) {
+					for (int w : neighbours[u]) if (v < w) {
+						set_intersection(inv_neighbours[v], inv_neighbours[w], u < z, u, z, v, w);
+					}}
+			} else {
+				for (int v : neighbours[u]) {
+					for (int w : inv_neighbours[v]) if (u < w) {
+						set_intersection(neighbours[u], neighbours[w], v < z, u, w, v, z);
+					}}
 			}
 		}
 	}
