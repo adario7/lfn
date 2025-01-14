@@ -3,6 +3,7 @@
 #include <cstdlib>
 #include <iostream>
 #include <map>
+#include <numeric>
 #include <unordered_set>
 #include <utility>
 #include <vector>
@@ -11,6 +12,7 @@
 using namespace std;
 
 using ll = long long;
+using ii = pair<int, int>;
 using Clock = chrono::high_resolution_clock;
 
 int N, M;
@@ -195,10 +197,14 @@ int main(int argc, char** argv) {
 	ios::sync_with_stdio(false);
 	cin.tie(nullptr), cout.tie(nullptr);
 
+	constexpr int SORT = 0;
+
 	cin >> N >> M;
+	vector<ii> edges;
 	neighbours.resize(N);
 	inv_neighbours.resize(N);
 	degree.resize(N);
+	edges.reserve(M * !!SORT);
 	for (int i = 0; i < M; i++) {
 		int x, y;
 		cin >> x >> y;
@@ -208,9 +214,36 @@ int main(int argc, char** argv) {
 		int a = min(x, y), b = max(x, y);
 		bool inserted = neighbours[a].insert(b).second;
 		if (!inserted) continue; // skip multi-edges
-		inv_neighbours[b].insert(a);
 		degree[x]++, degree[y]++;
+		if (SORT) edges.push_back({x, y});
+		else inv_neighbours[b].insert(a);
 	}
+
+	if (SORT) {
+		vector<int> sorted(N), perm(N);
+		iota(sorted.begin(), sorted.end(), 0);
+		sort(sorted.begin(), sorted.end(), [&](int u, int v) {
+			int du = SORT*degree[u], dv = SORT*degree[v];
+			return du < dv || (du == dv && u < v);
+		});
+		for (int i = 0; i < N; i++) perm[sorted[i]] = i;
+
+		for (int i = 0; i < N; i++)
+			neighbours[i].clear(), inv_neighbours[i].clear();
+		for (auto [i, j] : edges) {
+			int x = perm[i], y = perm[j];
+			int a = min(x, y), b = max(x, y);
+			neighbours[a].insert(b);
+			inv_neighbours[b].insert(a);
+		}
+		for (int i = 0; i < N; i++)
+			degree[i] = neighbours[i].size() + inv_neighbours[i].size();
+
+		for (int i = 0; i < N; i++)
+			for (int j : neighbours[i]) 
+				assert(i < j && SORT*degree[i] <= SORT*degree[j]);
+	}
+
 	
 	if (argc == 1) {
 		vector<long long> G = count<1, 1, 1, 1, 1, 1, 1, 1>();
