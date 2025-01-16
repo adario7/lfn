@@ -24,10 +24,10 @@ def stopwatch(exe_path, test_graph_path):
     with open(test_graph_path, "r") as infile:
         start_time = time.time()
         try:
-            graphlets = subprocess.run(exe_path, stdin=infile, capture_output=True,text=True,timeout=3600)
+            graphlets = subprocess.run(exe_path, stdin=infile, capture_output=True,text=True,timeout=900)
         except subprocess.TimeoutExpired:
             print("timer out")
-            return ["-1", 3600]
+            return ["-1", 900]
         end_time = time.time()
     cpu_time = end_time - start_time
     print(cpu_time)
@@ -43,15 +43,13 @@ def test(exe_path, n_tests = 5):
                 V, E = map(int, infile.readline().strip().split()[:2])
         except Exception:
             continue
-        if E >= 100000:
-            results.append([-1.0, 3600])
-        else:
-            for i in range(n_tests):
-                result = stopwatch(exe_path, str(graph))
-                if result[0] is None or result[0]=='':
-                    continue
-                float_result = [float(result[0].strip().split("\n")[-1]), result[1]]
-                results.append(float_result)
+        
+        for i in range(n_tests):
+            result = stopwatch(exe_path, str(graph))
+            if result[0] is None or result[0]=='':
+                continue
+            float_result = [float(result[0].strip().split("\n")[-1]), result[1]]
+            results.append(float_result)
         results = np.array(results)
         if len(results) != 0:
             report.append([graph_name,V,E]+list(results.mean(axis=0)))
