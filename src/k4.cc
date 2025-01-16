@@ -18,7 +18,6 @@ using Clock = chrono::high_resolution_clock;
 int N, M;
 vector<unordered_set<int>> neighbours, inv_neighbours;
 vector<ll> degree;
-vector<ll> ddegree;
 
 int bin2(int n) { return n * (n - 1) / 2; }
 
@@ -198,7 +197,7 @@ int main(int argc, char** argv) {
 	ios::sync_with_stdio(false);
 	cin.tie(nullptr), cout.tie(nullptr);
 
-	constexpr int SORT = 0;
+	constexpr int SORT = 2;
 
 	cin >> N >> M;
 	vector<ii> edges;
@@ -220,33 +219,27 @@ int main(int argc, char** argv) {
 		else inv_neighbours[b].insert(a);
 	}
 
-
-
 	if (SORT) {
-		
-		if(abs(SORT) == 2){
-			for(int i = 0; i < N; i++){
-				ddegree.push_back(0);
-				for(auto u: neighbours[i])
-					ddegree[i] += degree[u];
-				
-				for(auto u: inv_neighbours[i])
-					ddegree[i] += degree[u];
+		vector<ll> npaths(N);
+		if (abs(SORT) == 2) {
+			cerr << "using ddegree" << endl;
+			npaths.resize(N);
+			for (int i = 0; i < N; i++){
+				for (auto u: neighbours[i])
+					npaths[i] += degree[u];
+				for (auto u: inv_neighbours[i])
+					npaths[i] += degree[u];
 			}
-
-			swap(degree, ddegree);
 		}
 
 		vector<int> sorted(N), perm(N);
 		iota(sorted.begin(), sorted.end(), 0);
 		sort(sorted.begin(), sorted.end(), [&](int u, int v) {
-			int du = SORT*degree[u], dv = SORT*degree[v];
+			const auto& sort_by = (abs(SORT) == 2) ? npaths : degree;
+			int du = SORT*sort_by[u], dv = SORT*sort_by[v];
 			return du < dv || (du == dv && u < v);
 		});
 		for (int i = 0; i < N; i++) perm[sorted[i]] = i;
-
-		if(abs(SORT) == 2)
-			swap(degree, ddegree);
 
 		for (int i = 0; i < N; i++)
 			neighbours[i].clear(), inv_neighbours[i].clear();
@@ -256,31 +249,19 @@ int main(int argc, char** argv) {
 			neighbours[a].insert(b);
 			inv_neighbours[b].insert(a);
 		}
-		for (int i = 0; i < N; i++)
+		for (int i = 0; i < N; i++) {
 			degree[i] = neighbours[i].size() + inv_neighbours[i].size();
-/*
-		if(abs(SORT) == 2){
-			for(int i = 0; i < N; i++){
-				ddegree[i] = 0;
-				for(auto u: neighbours[i])
-					ddegree[i] += degree[u];
-				
-				for(auto u: inv_neighbours[i])
-					ddegree[i] += degree[u];
-			}
-
-			swap(degree, ddegree);
 		}
-
-		for (int i = 0; i < N; i++)
-			for (int j : neighbours[i]) 
-				assert(i < j && SORT*degree[i] <= SORT*degree[j]);
-
-		if(abs(SORT) == 2)
-			swap(degree, ddegree);
-			*/
+		for (int i = 0; i < N; i++) {
+			npaths[i] = 0;
+			for (auto u: neighbours[i])
+				npaths[i] += degree[u];
+			for (auto u: inv_neighbours[i])
+				npaths[i] += degree[u];
+		}
+		cerr << degree[N-1] << " " << degree[N-2] << " " << degree[N-3] << endl;
+		cerr << npaths[N-1] << " " << npaths[N-2] << " " << npaths[N-3] << endl;
 	}
-
 	
 	if (argc == 1) {
 		vector<long long> G = count<1, 1, 1, 1, 1, 1, 1, 1>();
