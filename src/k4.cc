@@ -17,7 +17,8 @@ using Clock = chrono::high_resolution_clock;
 
 int N, M;
 vector<unordered_set<int>> neighbours, inv_neighbours;
-vector<int> degree;
+vector<ll> degree;
+vector<ll> ddegree;
 
 int bin2(int n) { return n * (n - 1) / 2; }
 
@@ -219,7 +220,23 @@ int main(int argc, char** argv) {
 		else inv_neighbours[b].insert(a);
 	}
 
+
+
 	if (SORT) {
+		
+		if(abs(SORT) == 2){
+			for(int i = 0; i < N; i++){
+				ddegree.push_back(0);
+				for(auto u: neighbours[i])
+					ddegree[i] += degree[u];
+				
+				for(auto u: inv_neighbours[i])
+					ddegree[i] += degree[u];
+			}
+
+			swap(degree, ddegree);
+		}
+
 		vector<int> sorted(N), perm(N);
 		iota(sorted.begin(), sorted.end(), 0);
 		sort(sorted.begin(), sorted.end(), [&](int u, int v) {
@@ -227,6 +244,9 @@ int main(int argc, char** argv) {
 			return du < dv || (du == dv && u < v);
 		});
 		for (int i = 0; i < N; i++) perm[sorted[i]] = i;
+
+		if(abs(SORT) == 2)
+			swap(degree, ddegree);
 
 		for (int i = 0; i < N; i++)
 			neighbours[i].clear(), inv_neighbours[i].clear();
@@ -238,10 +258,27 @@ int main(int argc, char** argv) {
 		}
 		for (int i = 0; i < N; i++)
 			degree[i] = neighbours[i].size() + inv_neighbours[i].size();
+/*
+		if(abs(SORT) == 2){
+			for(int i = 0; i < N; i++){
+				ddegree[i] = 0;
+				for(auto u: neighbours[i])
+					ddegree[i] += degree[u];
+				
+				for(auto u: inv_neighbours[i])
+					ddegree[i] += degree[u];
+			}
+
+			swap(degree, ddegree);
+		}
 
 		for (int i = 0; i < N; i++)
 			for (int j : neighbours[i]) 
 				assert(i < j && SORT*degree[i] <= SORT*degree[j]);
+
+		if(abs(SORT) == 2)
+			swap(degree, ddegree);
+			*/
 	}
 
 	
