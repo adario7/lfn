@@ -28,7 +28,7 @@ int count_colorful(const vector<unordered_set<int>> &graph, const vector<int> &c
     if (!(bitmask & (1 << colors[node])))
     {
         dp[node][bitmask] = 0;
-        return dp[node][bitmask];
+        return 0;
     }
     
     if(depth == k)
@@ -72,17 +72,18 @@ int main()
     }
 
     vector<int> colors;
-    int count = 0;
+    unsigned long long count = 0;
     int t = 10;
-    int k = 3;
-
+    int k = 4;
+    int bitmask = ( 1U << k) - 1;
 
     for(int i = 0; i<t; i++)
     {
         colors = random_color(n,k);
         vector<vector<int>> dp(n, vector<int>(1 << k, -1));
-        for(int j=0; j<n; j++)
-            count = count + count_colorful(graph, colors, j, 7, k-1, 0, dp,-1);
+        for(int j=0; j<n; j++){
+            count = count + count_colorful(graph, colors, j, bitmask, k-1, 0, dp,-1);
+            cout<<count<<endl;}
     }
 
     double graphlets = (1.0 / t) * static_cast<double>(count) * (pow(k, k) / tgamma(k + 1)); 
